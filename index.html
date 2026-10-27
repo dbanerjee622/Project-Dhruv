@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Project Dhruv | Empowering Refugee Youth Through Tech</title>
+<script>try{var t=localStorage.getItem('dhruv-theme');if(t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches)document.documentElement.classList.add('dark')}catch(e){}</script>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+tailwind.config = { darkMode: 'class', theme: { extend: { colors: { brand: { 50: '#fdf8f6', 100: '#fbe8e6', 500: '#f97316', 600: '#ea580c', 700: '#c2410c', 900: '#7c2d12' } } } } }
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+<!-- Font Awesome (script version, so it also works inside the hosted preview) -->
+<script defer data-auto-replace-svg="nest" src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{background:#f8fafc}
+html.dark{background:#020617;color-scheme:dark}
+body { font-family: 'Inter', sans-serif; }
+[x-cloak] { display: none !important; }
+svg.svg-inline--fa { display: inline-block; height: 1em; width: 1.25em; vertical-align: -0.125em; overflow: visible; }
+</style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300" x-data="dhruvApp()">
+<!-- ================= LOGIN / SIGN UP ================= -->
+<div x-show="!user" x-cloak class="fixed inset-0 z-[60] overflow-y-auto bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+<div class="absolute top-4 right-4 z-10">
+<button @click="darkMode = !darkMode" role="switch" :aria-checked="darkMode" aria-label="Switch between light and dark mode" title="Light / dark mode" class="relative w-16 h-8 rounded-full bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500">
+<span class="absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white dark:bg-slate-900 shadow transition-transform duration-300" :class="darkMode ? 'translate-x-8' : 'translate-x-0'"></span>
+<i class="fa-solid fa-sun absolute left-2 top-1/2 -translate-y-1/2 text-xs text-amber-500 dark:text-slate-400"></i>
+<i class="fa-solid fa-moon absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400 dark:text-orange-300"></i>
+</button>
+</div>
+<div class="min-h-full flex items-center justify-center p-4 py-16">
+<div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl shadow-orange-500/10 p-6 sm:p-8">
+<div class="flex justify-center mb-5">
+<svg viewBox="0 0 140 50" class="h-14 w-auto" role="img" aria-label="Project Dhruv"><defs><linearGradient id="lgA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#f59e0b"/></linearGradient></defs><rect x="2" y="2" width="136" height="36" rx="8" fill="#334155"/><rect x="6" y="6" width="128" height="28" rx="5" fill="url(#lgA)"/><text x="70" y="25" text-anchor="middle" font-family="Inter,sans-serif" font-weight="700" font-size="14" fill="#fff">Project Dhruv</text><rect x="58" y="38" width="24" height="5" fill="#475569"/><rect x="44" y="43" width="52" height="5" rx="2.5" fill="#334155"/></svg>
+</div>
+<h1 class="text-2xl font-extrabold text-center text-slate-900 dark:text-white" x-text="authMode === 'login' ? 'Welcome back' : 'Create your account'"></h1>
+<p class="text-sm text-center text-slate-500 dark:text-slate-400 mt-1 mb-6" x-text="authMode === 'login' ? 'Log in to pick up where you left off.' : 'Free to join. Learn at your own pace.'"></p>
+
+<div x-show="googleReal" class="flex justify-center"><div id="gbtn"></div></div>
+<button x-show="!googleReal" type="button" @click="googleDemo = !googleDemo; authError = ''" class="w-full flex items-center justify-center space-x-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-100 transition">
+<svg class="w-5 h-5" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+<span>Continue with Google</span>
+</button>
+<div x-show="googleDemo && !googleReal" x-cloak class="mt-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
+<p class="text-xs font-semibold text-slate-700 dark:text-slate-200">Choose your Google account</p>
+<input x-model="gDemo.name" type="text" placeholder="Name on your Google account" autocomplete="name" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500">
+<input x-model="gDemo.email" type="email" placeholder="Google email" autocomplete="email" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500">
+<button type="button" @click="googleDemoSignIn()" class="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold transition">Continue</button>
+<p class="text-[11px] text-slate-400">Demo mode: this account chooser is simulated until a Google Client ID is added in the code.</p>
+</div>
+
+<div class="flex items-center my-5"><div class="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div><span class="px-3 text-xs text-slate-400">or use email</span><div class="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div></div>
+
+<form @submit.prevent="submitAuth()" class="space-y-3">
+<div x-show="authMode === 'signup'" x-cloak>
+<label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Your name</label>
+<input x-model="authForm.name" type="text" autocomplete="name" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500">
+</div>
+<div>
+<label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+<input x-model="authForm.email" type="email" autocomplete="email" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500">
+</div>
+<div>
+<div class="flex justify-between items-center mb-1.5"><label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Password</label><button type="button" @click="showPw = !showPw" class="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline" x-text="showPw ? 'Hide' : 'Show'"></button></div>
+<input x-model="authForm.password" :type="showPw ? 'text' : 'password'" :autocomplete="authMode === 'login' ? 'current-password' : 'new-password'" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-orange-500">
+</div>
+<p x-show="authError" x-cloak x-text="authError" role="alert" class="text-xs font-medium text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 rounded-xl px-3 py-2"></p>
+<button type="submit" class="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold transition shadow-md shadow-orange-600/20" x-text="authMode === 'login' ? 'Log in' : 'Create account'"></button>
+</form>
+<p class="text-sm text-center text-slate-500 dark:text-slate-400 mt-5">
+<span x-text="authMode === 'login' ? 'New to Project Dhruv?' : 'Already have an account?'"></span>
+<button type="button" @click="authMode = authMode === 'login' ? 'signup' : 'login'; authError = ''" class="font-semibold text-orange-600 dark:text-orange-400 hover:underline" x-text="authMode === 'login' ? 'Create an account' : 'Log in'"></button>
+</p>
+<p class="text-[11px] text-center text-slate-400 mt-4">Your name, email and progress are saved on this device only.</p>
+</div>
+</div>
+</div>
+
+<div class="min-h-full flex flex-col" x-show="user" x-cloak>
+
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+<div class="flex items-center space-x-3 cursor-pointer" @click="currentTab = 'dashboard'">
+<svg viewBox="0 0 140 50" class="h-11 w-auto" role="img" aria-label="Project Dhruv"><defs><linearGradient id="lgB" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f97316"/><stop offset="1" stop-color="#f59e0b"/></linearGradient></defs><rect x="2" y="2" width="136" height="36" rx="8" fill="#334155"/><rect x="6" y="6" width="128" height="28" rx="5" fill="url(#lgB)"/><text x="70" y="25" text-anchor="middle" font-family="Inter,sans-serif" font-weight="700" font-size="14" fill="#fff">Project Dhruv</text><rect x="58" y="38" width="24" height="5" fill="#475569"/><rect x="44" y="43" width="52" height="5" rx="2.5" fill="#334155"/></svg>
+</div>
+<nav class="hidden md:flex items-center space-x-1">
+<button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 font-semibold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'" class="px-4 py-2 rounded-lg text-sm transition-all flex items-center space-x-2"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></button>
+<button @click="currentTab = 'curriculum'" :class="currentTab === 'curriculum' ? 'bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 font-semibold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'" class="px-4 py-2 rounded-lg text-sm transition-all flex items-center space-x-2"><i class="fa-solid fa-book-open"></i><span>Curriculum</span></button>
+<button @click="currentTab = 'mentors'" :class="currentTab === 'mentors' ? 'bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 font-semibold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'" class="px-4 py-2 rounded-lg text-sm transition-all flex items-center space-x-2"><i class="fa-solid fa-users"></i><span>Mentor Match</span></button>
+<button @click="currentTab = 'impact'" :class="currentTab === 'impact' ? 'bg-orange-50 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 font-semibold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'" class="px-4 py-2 rounded-lg text-sm transition-all flex items-center space-x-2"><i class="fa-solid fa-globe"></i><span>Community & Impact</span></button>
+</nav>
+<div class="flex items-center space-x-3">
+<button @click="darkMode = !darkMode" role="switch" :aria-checked="darkMode" aria-label="Switch between light and dark mode" title="Light / dark mode" class="relative w-16 h-8 rounded-full bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500">
+<span class="absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-white dark:bg-slate-900 shadow transition-transform duration-300" :class="darkMode ? 'translate-x-8' : 'translate-x-0'"></span>
+<i class="fa-solid fa-sun absolute left-2 top-1/2 -translate-y-1/2 text-xs text-amber-500 dark:text-slate-400"></i>
+<i class="fa-solid fa-moon absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400 dark:text-orange-300"></i>
+</button>
+<div class="relative" x-data="{ open: false }">
+<button @click="open = !open" class="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition relative">
+<i class="fa-solid fa-bell text-lg"></i>
+<span class="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse"></span>
+</button>
+<div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-4 z-50 text-sm">
+<div class="font-semibold pb-2 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<span>Notifications</span>
+<span class="text-xs bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-400 px-2 py-0.5 rounded-full font-medium">2 New</span>
+</div>
+<div class="mt-3 space-y-3">
+<div class="flex items-start space-x-3 text-xs">
+<div class="w-7 h-7 rounded-full bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 flex items-center justify-center flex-shrink-0 mt-0.5"><i class="fa-solid fa-calendar-check"></i></div>
+<div><p class="font-medium text-slate-800 dark:text-slate-200">Mentor session confirmed with Aryan S.</p><p class="text-slate-400 mt-0.5">Tomorrow at 4:00 PM IST</p></div>
+</div>
+<div class="flex items-start space-x-3 text-xs">
+<div class="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5"><i class="fa-solid fa-award"></i></div>
+<div><p class="font-medium text-slate-800 dark:text-slate-200">New badge unlocked: AI Pioneer!</p><p class="text-slate-400 mt-0.5">Completed Intro to AI Module 1</p></div>
+</div>
+</div>
+</div>
+</div>
+<div class="relative pl-2 border-l border-slate-200 dark:border-slate-800" x-data="{ pm: false }">
+<button @click="pm = !pm" aria-label="Account menu" class="flex items-center space-x-3 text-left">
+<template x-if="user && user.picture"><img :src="user.picture" alt="" referrerpolicy="no-referrer" @error="user.picture = ''" class="w-9 h-9 rounded-full object-cover shadow"></template>
+<template x-if="user && !user.picture"><div class="w-9 h-9 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 flex items-center justify-center text-white font-bold text-sm shadow" x-text="initials"></div></template>
+<div class="hidden lg:block text-left">
+<span class="block text-xs font-semibold text-slate-800 dark:text-slate-200" x-text="user?.name"></span>
+<span class="block text-[10px] text-orange-600 dark:text-orange-400 font-medium max-w-[150px] truncate" x-text="user?.email"></span>
+</div>
+</button>
+<div x-show="pm" @click.away="pm = false" x-cloak class="absolute right-0 mt-3 w-60 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-4 z-50 text-sm">
+<p class="font-semibold text-slate-900 dark:text-white truncate" x-text="user?.name"></p>
+<p class="text-xs text-slate-500 dark:text-slate-400 truncate" x-text="user?.email"></p>
+<p class="text-[11px] text-slate-400 mt-1" x-text="user?.provider === 'google' ? 'Signed in with Google' : 'Signed in with email'"></p>
+<button @click="pm = false; logout()" class="mt-3 w-full py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center justify-center space-x-2"><i class="fa-solid fa-right-from-bracket"></i><span>Log out</span></button>
+</div>
+</div>
+</div>
+</div>
+</header>
+
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+<!-- ================= DASHBOARD TAB ================= -->
+<div x-show="currentTab === 'dashboard'" x-transition.opacity>
+<div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-600 via-amber-600 to-orange-500 p-8 text-white shadow-xl shadow-orange-500/10 mb-8">
+<div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+<div class="relative z-10 max-w-2xl">
+<div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-medium mb-4">
+<i class="fa-solid fa-heart text-amber-200"></i><span>Safe Learning Space • Take your time at your own pace</span>
+</div>
+<h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">Welcome back, <span x-text="firstName"></span>! 👋</h1>
+<p class="text-orange-100 text-sm sm:text-base leading-relaxed mb-6">You are making wonderful progress on your digital literacy journey. Remember, every concept you master unlocks a brighter future for you and your community.</p>
+<div class="flex flex-wrap gap-3">
+<button @click="currentTab = 'curriculum'" class="px-5 py-2.5 rounded-xl bg-white text-orange-600 font-semibold text-sm shadow-md hover:bg-orange-50 transition transform hover:-translate-y-0.5">Continue Lesson <i class="fa-solid fa-arrow-right ml-2 text-xs"></i></button>
+<button @click="currentTab = 'mentors'" class="px-5 py-2.5 rounded-xl bg-orange-700/60 backdrop-blur-md text-white font-semibold text-sm border border-white/20 hover:bg-orange-700 transition">Book Mentor Session</button>
+</div>
+</div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-3"><span class="text-xs font-medium text-slate-500 dark:text-slate-400">Global Students</span><div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 flex items-center justify-center text-sm"><i class="fa-solid fa-users"></i></div></div>
+<div class="text-2xl font-bold text-slate-900 dark:text-white">75+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-3"><span class="text-xs font-medium text-slate-500 dark:text-slate-400">Certified Mentors</span><div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm"><i class="fa-solid fa-chalkboard-user"></i></div></div>
+<div class="text-2xl font-bold text-slate-900 dark:text-white">15</div>
+<p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1">Schoolhouse.world verified</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-3"><span class="text-xs font-medium text-slate-500 dark:text-slate-400">Hours Taught</span><div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm"><i class="fa-solid fa-clock"></i></div></div>
+<div class="text-2xl font-bold text-slate-900 dark:text-white">200</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-3"><span class="text-xs font-medium text-slate-500 dark:text-slate-400">Devices Acquired</span><div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm"><i class="fa-solid fa-laptop"></i></div></div>
+<div class="text-2xl font-bold text-slate-900 dark:text-white">50+</div>
+<p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1">Via Corporate CSR partners</p>
+</div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 space-y-6">
+<div class="flex items-center justify-between">
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Your Learning Pathway</h2>
+<button @click="currentTab = 'curriculum'" class="text-sm font-semibold text-orange-600 dark:text-orange-400 hover:underline">View All Modules</button>
+</div>
+
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xl"><i class="fa-solid fa-brain"></i></div>
+<div><span class="text-xs font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400">Module 2</span><h3 class="text-lg font-bold text-slate-900 dark:text-white">Intro to Artificial Intelligence</h3></div>
+</div>
+<span :class="badgeClass(2)" class="px-3 py-1 rounded-full text-xs font-medium" x-text="moduleStatus(2)"></span>
+</div>
+<div class="mb-4">
+<div class="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400 mb-1"><span>Progress</span><span x-text="modulePct(2) + '% Completed'"></span></div>
+<div class="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-700" :style="'width:' + modulePct(2) + '%'"></div></div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+<span class="text-xs text-slate-400"><i class="fa-solid fa-clock mr-1"></i> <span x-text="nextLabel(2)"></span></span>
+<button @click="openModule(2)" class="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold transition shadow-md shadow-orange-600/20" x-text="modulePct(2) === 100 ? 'Review Module' : 'Resume Lesson'"></button>
+</div>
+</div>
+
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-center space-x-3">
+<div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl"><i class="fa-solid fa-shield-halved"></i></div>
+<div><span class="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Module 3</span><h3 class="text-lg font-bold text-slate-900 dark:text-white">Safe Internet Navigation & Privacy</h3></div>
+</div>
+<span :class="badgeClass(3)" class="px-3 py-1 rounded-full text-xs font-medium" x-text="moduleStatus(3)"></span>
+</div>
+<div class="mb-4" x-show="moduleStatus(3) !== 'Not Started'" x-cloak>
+<div class="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400 mb-1"><span>Progress</span><span x-text="modulePct(3) + '% Completed'"></span></div>
+<div class="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-700" :style="'width:' + modulePct(3) + '%'"></div></div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+<span class="text-xs text-slate-400"><i class="fa-solid fa-book mr-1"></i> 4 Interactive Chapters</span>
+<button @click="openModule(3)" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm font-semibold transition" x-text="moduleStatus(3) === 'Not Started' ? 'Start Module' : (modulePct(3) === 100 ? 'Review Module' : 'Resume Lesson')"></button>
+</div>
+</div>
+</div>
+
+<div class="space-y-6">
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Upcoming Mentorship</h3>
+<div class="bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/50 rounded-xl p-4 mb-4">
+<div class="flex items-center space-x-3 mb-3">
+<div class="w-10 h-10 rounded-full bg-orange-600 text-white font-bold flex items-center justify-center text-sm shadow">AS</div>
+<div><h4 class="font-semibold text-slate-900 dark:text-white text-sm">Aryan Sharma</h4><p class="text-xs text-orange-600 dark:text-orange-400">Schoolhouse.world Certified Mentor</p></div>
+</div>
+<div class="space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
+<p><i class="fa-solid fa-calendar mr-2 text-orange-500"></i> Tomorrow, Oct 27</p>
+<p><i class="fa-solid fa-clock mr-2 text-orange-500"></i> 4:00 PM - 5:00 PM IST</p>
+<p><i class="fa-solid fa-language mr-2 text-orange-500"></i> Language: Hindi / English</p>
+</div>
+</div>
+<button @click="showToast('Zoom session link copied to clipboard!')" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition shadow-md shadow-emerald-600/20 flex items-center justify-center space-x-2"><i class="fa-solid fa-video"></i><span>Join Zoom Meeting</span></button>
+</div>
+<div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10 text-6xl"><i class="fa-solid fa-hands-holding-child"></i></div>
+<h3 class="text-base font-bold mb-2">Cultural Community Partnerships</h3>
+<p class="text-xs text-slate-300 leading-relaxed mb-4">Connected through regional community chapters. Check out the latest community laptop distribution drive in New Delhi.</p>
+<button @click="currentTab = 'impact'" class="text-xs font-semibold text-orange-400 hover:underline flex items-center space-x-1"><span>Read Community Stories</span><i class="fa-solid fa-arrow-right"></i></button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ================= CURRICULUM TAB ================= -->
+<div x-show="currentTab === 'curriculum'" x-transition.opacity>
+<div class="mb-8">
+<div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 text-xs font-semibold mb-3"><i class="fa-solid fa-sparkles"></i><span>Trauma-Informed & Multilingual Learning</span></div>
+<h1 class="text-3xl font-extrabold text-slate-900 dark:text-white">Curriculum & Interactive Lessons</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-2">Self-paced modules designed specifically for Afghan Hindu refugee youth. Translated into local dialects with step-by-step guidance.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-laptop-code"></i></div>
+<span class="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Module 1</span>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white mt-1 mb-2">Digital Literacy Basics</h3>
+<p class="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-4">Master file management, keyboard navigation, web research fundamentals, and email communication securely.</p>
+<div class="space-y-2 mb-6">
+<template x-for="l in moduleLessons(1)" :key="l.id">
+<div @click="openLesson(l.id)" class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 p-2 rounded-lg cursor-pointer" :class="rowClass(l.id)">
+<span><i :class="rowIcon(l.id)" class="fa-solid mr-2"></i> <span x-text="l.short"></span></span>
+<span :class="rowTextClass(l.id)" x-text="rowStatus(l.id)"></span>
+</div>
+</template>
+</div>
+</div>
+<button @click="openModule(1)" class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm font-semibold transition" x-text="moduleBtn(1)"></button>
+</div>
+
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between ring-2 ring-orange-500/50">
+<div>
+<div class="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-brain"></i></div>
+<span class="text-xs font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400">Module 2 • Active</span>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white mt-1 mb-2">Intro to Artificial Intelligence</h3>
+<p class="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-4">Discover how machine learning models work, how to prompt AI assistants, and ethical AI usage in everyday studies.</p>
+<div class="space-y-2 mb-6">
+<template x-for="l in moduleLessons(2)" :key="l.id">
+<div @click="openLesson(l.id)" class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 p-2 rounded-lg cursor-pointer" :class="rowClass(l.id)">
+<span><i :class="rowIcon(l.id)" class="fa-solid mr-2"></i> <span x-text="l.short"></span></span>
+<span :class="rowTextClass(l.id)" x-text="rowStatus(l.id)"></span>
+</div>
+</template>
+</div>
+</div>
+<button @click="openModule(2)" class="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold transition shadow-md shadow-orange-600/20" x-text="moduleBtn(2)"></button>
+</div>
+
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+<div>
+<div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl mb-4"><i class="fa-solid fa-shield-halved"></i></div>
+<span class="text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Module 3</span>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white mt-1 mb-2">Safe Internet Navigation</h3>
+<p class="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-4">Learn password security, how to spot phishing scams, and protect personal digital identity across online spaces.</p>
+<div class="space-y-2 mb-6">
+<template x-for="l in moduleLessons(3)" :key="l.id">
+<div @click="openLesson(l.id)" class="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 p-2 rounded-lg cursor-pointer" :class="rowClass(l.id)">
+<span><i :class="rowIcon(l.id)" class="fa-solid mr-2"></i> <span x-text="l.short"></span></span>
+<span :class="rowTextClass(l.id)" x-text="rowStatus(l.id)"></span>
+</div>
+</template>
+</div>
+</div>
+<button @click="openModule(3)" class="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm font-semibold transition" x-text="moduleBtn(3)"></button>
+</div>
+</div>
+</div>
+
+<!-- ================= MENTOR MATCH TAB ================= -->
+<div x-show="currentTab === 'mentors'" x-transition.opacity>
+<div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<div>
+<div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 text-xs font-semibold mb-3"><i class="fa-solid fa-certificate"></i><span>Schoolhouse.world Certified Tutors (90%+ Accuracy Verified)</span></div>
+<h1 class="text-3xl font-extrabold text-slate-900 dark:text-white">Find Your Mentor</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-2">Connect one-on-one with mentors who speak your language and guide you with empathy.</p>
+</div>
+<div class="flex items-center space-x-2">
+<span class="text-xs font-medium text-slate-500">Filter by Language:</span>
+<select x-model="selectedLanguage" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-orange-500">
+<option value="all">All Languages</option>
+<option value="hindi">Hindi</option>
+<option value="dari">Dari / Persian</option>
+<option value="english">English</option>
+</select>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center space-x-4 mb-4">
+<div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 text-white font-bold flex items-center justify-center text-lg shadow-lg">AS</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white text-base">Aryan Sharma</h3>
+<span class="text-xs text-orange-600 dark:text-orange-400 font-medium">AI & Python Specialist</span>
+<div class="flex items-center space-x-1 text-xs text-amber-500 mt-1"><i class="fa-solid fa-star"></i><span class="font-bold text-slate-700 dark:text-slate-300">4.5</span><span class="text-slate-400">(12 sessions)</span></div>
+</div>
+</div>
+<div class="flex flex-wrap gap-1.5 mb-4">
+<span class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Hindi</span>
+<span class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">English</span>
+<span class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">Schoolhouse Certified</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">"Passionate about breaking down tech barriers for refugee youth. Certified through rigorous peer-reviewed reasoning exams."</p>
+</div>
+<button @click="openBookingModal('Aryan Sharma')" class="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm transition shadow-md shadow-orange-600/20 flex items-center justify-center space-x-2"><i class="fa-solid fa-calendar-plus"></i><span>Book Session</span></button>
+</div>
+
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center space-x-4 mb-4">
+<div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-500 to-indigo-500 text-white font-bold flex items-center justify-center text-lg shadow-lg">PA</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white text-base">Priyanka A.</h3>
+<span class="text-xs text-blue-600 dark:text-blue-400 font-medium">Digital Literacy Lead</span>
+<div class="flex items-center space-x-1 text-xs text-amber-500 mt-1"><i class="fa-solid fa-star"></i><span class="font-bold text-slate-700 dark:text-slate-300">4.8</span><span class="text-slate-400">(19 sessions)</span></div>
+</div>
+</div>
+<div class="flex flex-wrap gap-1.5 mb-4">
+<span class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Dari</span>
+<span class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Hindi</span>
+<span class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">Schoolhouse Certified</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">"Focusing on gentle, trauma-informed digital fundamentals so students feel secure exploring the web and productivity tools."</p>
+</div>
+<button @click="openBookingModal('Priyanka A.')" class="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm transition shadow-md shadow-orange-600/20 flex items-center justify-center space-x-2"><i class="fa-solid fa-calendar-plus"></i><span>Book Session</span></button>
+</div>
+
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center space-x-4 mb-4">
+<div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white font-bold flex items-center justify-center text-lg shadow-lg">VB</div>
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white text-base">Vivaan B.</h3>
+<span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Coding & Web Design</span>
+<div class="flex items-center space-x-1 text-xs text-amber-500 mt-1"><i class="fa-solid fa-star"></i><span class="font-bold text-slate-700 dark:text-slate-300">3.9</span><span class="text-slate-400">(11 sessions)</span></div>
+</div>
+</div>
+<div class="flex flex-wrap gap-1.5 mb-4">
+<span class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">English</span>
+<span class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Hindi</span>
+<span class="px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">Schoolhouse Certified</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-6">"Building the next generation of tech creators. We build mini websites and interactive games together step by step!"</p>
+</div>
+<button @click="openBookingModal('Vivaan B.')" class="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm transition shadow-md shadow-orange-600/20 flex items-center justify-center space-x-2"><i class="fa-solid fa-calendar-plus"></i><span>Book Session</span></button>
+</div>
+</div>
+</div>
+
+<!-- ================= IMPACT & SAHAS TAB ================= -->
+<div x-show="currentTab === 'impact'" x-transition.opacity>
+<div class="mb-8">
+<div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 text-xs font-semibold mb-3"><i class="fa-solid fa-handshake"></i><span>Community & Corporate CSR Partnerships</span></div>
+<h1 class="text-3xl font-extrabold text-slate-900 dark:text-white">Community & Impact</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-2">See how community partners, certified mentors and corporate technology donations are helping students learn across borders.</p>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm"><div class="flex items-center justify-between mb-3"><span class="text-xs font-medium text-slate-500 dark:text-slate-400">Global Students</span><div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 flex items-center justify-center text-sm"><i class="fa-solid fa-users"></i></div></div><div class="text-2xl font-bold text-slate-900 dark:text-white">75+</div></div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm"><div class="flex items-center justify-between mb-3"><span class="text-xs font-medium text-slate-500 dark:text-slate-400">Certified Mentors</span><div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm"><i class="fa-solid fa-chalkboard-user"></i></div></div><div class="text-2xl font-bold text-slate-900 dark:text-white">15</div><p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1">Schoolhouse.world verified</p></div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm"><div class="flex items-center justify-between mb-3"><span class="text-xs font-medium text-slate-500 dark:text-slate-400">Hours Taught</span><div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm"><i class="fa-solid fa-clock"></i></div></div><div class="text-2xl font-bold text-slate-900 dark:text-white">200</div></div>
+<div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm"><div class="flex items-center justify-between mb-3"><span class="text-xs font-medium text-slate-500 dark:text-slate-400">Devices Acquired</span><div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm"><i class="fa-solid fa-laptop"></i></div></div><div class="text-2xl font-bold text-slate-900 dark:text-white">50+</div><p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-1">Via Corporate CSR partners</p></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-sm">
+<div class="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xl mb-6"><i class="fa-solid fa-laptop"></i></div>
+<h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Corporate CSR Device Sourcing</h3>
+<p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-6">Through direct partnerships with corporate CSR programs in India, 50+ refurbished enterprise laptops have been acquired, professionally wiped, loaded with our offline-capable curriculum, and distributed securely to student households through local community chapters.</p>
+<div class="flex items-center space-x-4 text-xs font-semibold text-orange-600 dark:text-orange-400"><span><i class="fa-solid fa-check mr-1.5"></i> 50+ Devices Acquired</span><span><i class="fa-solid fa-check mr-1.5"></i> Corporate CSR Partners</span></div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-sm">
+<div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl mb-6"><i class="fa-solid fa-certificate"></i></div>
+<h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Verifiable Portfolio & College Prep</h3>
+<p class="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-6">75+ students are building verified portfolios that show mastery in digital literacy and AI, guided by 15 certified mentors across 200 hours of teaching. Partner colleges recognize these certificates, paving the way for higher education scholarships and tech internships.</p>
+<div class="flex items-center space-x-4 text-xs font-semibold text-blue-600 dark:text-blue-400"><span><i class="fa-solid fa-check mr-1.5"></i> Schoolhouse.world Aligned</span><span><i class="fa-solid fa-check mr-1.5"></i> Partner College Network</span></div>
+</div>
+</div>
+<div class="bg-gradient-to-r from-orange-500 to-amber-600 rounded-3xl p-8 text-white shadow-xl shadow-orange-500/10">
+<div class="max-w-3xl">
+<span class="text-xs uppercase tracking-wider bg-white/25 px-3 py-1 rounded-full font-semibold">Student Spotlight</span>
+<h2 class="text-2xl font-bold mt-3 mb-2">"Project Dhruv gave me the confidence to build my first website."</h2>
+<p class="text-orange-100 text-sm leading-relaxed mb-6">— Sachin K., 15-year-old student from New Delhi. Now mentoring younger kids in his community after completing the Schoolhouse.world certified track.</p>
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-bold">SK</div>
+<div><span class="block text-xs font-semibold">Sachin K.</span><span class="block text-[10px] text-orange-200">Community Mentor & Student Leader</span></div>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+<footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 mt-12">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 space-y-4 sm:space-y-0">
+<p>© 2026 Project Dhruv</p>
+<div class="flex items-center space-x-6">
+<span class="hover:text-orange-600 cursor-pointer" @click="currentTab = 'dashboard'">Dashboard</span>
+<span class="hover:text-orange-600 cursor-pointer" @click="currentTab = 'curriculum'">Curriculum</span>
+<span class="hover:text-orange-600 cursor-pointer" @click="currentTab = 'mentors'">Mentorship</span>
+<span class="hover:text-orange-600 cursor-pointer" @click="currentTab = 'impact'">Community & Impact</span>
+</div>
+</div>
+</footer>
+
+<!-- ================= LESSON MODAL VIEW (INTERACTIVE) ================= -->
+<div x-show="lessonModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+<div @click.away="lessonModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+<button @click="lessonModalOpen = false" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+<div class="flex items-center space-x-3 mb-4">
+<span class="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-400">Interactive Lesson</span>
+<span class="text-xs text-slate-400"><i class="fa-solid fa-clock mr-1"></i> <span x-text="currentLesson.mins + ' min read & practice'"></span></span>
+</div>
+<h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-3 pr-8" x-text="currentLesson.title"></h2>
+<div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 rounded-2xl p-4 mb-6 flex items-start space-x-3">
+<i class="fa-solid fa-heart text-amber-500 mt-1"></i>
+<p class="text-xs text-amber-800 dark:text-amber-200 leading-relaxed"><strong>Take your time:</strong> There is no rush or timer here. Feel free to re-read concepts as many times as you need in your preferred language.</p>
+</div>
+<div class="space-y-3 mb-6">
+<template x-for="(s, i) in currentLesson.steps" :key="i">
+<div class="flex items-start space-x-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
+<div class="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-500 to-amber-500 text-white text-sm font-bold flex items-center justify-center flex-shrink-0 shadow" x-text="i + 1"></div>
+<div><h4 class="text-sm font-bold text-slate-900 dark:text-white" x-text="s.t"></h4><p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mt-1" x-text="s.d"></p></div>
+</div>
+</template>
+</div>
+<div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 font-mono text-xs text-orange-600 dark:text-orange-400 mb-8 whitespace-pre-line" x-text="currentLesson.codeSnippet"></div>
+
+<div class="mb-8">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center space-x-2"><i class="fa-solid fa-circle-play text-orange-500"></i><span>Recommended Video</span></h3>
+<div class="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-orange-600 via-amber-600 to-orange-500 text-white shadow-lg shadow-orange-500/10">
+<div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+<span class="text-[10px] uppercase tracking-wider bg-white/25 px-3 py-1 rounded-full font-semibold mb-3" x-text="video.playing ? 'Now Playing (Preview)' : 'Preview • Hindi & English Subtitles'"></span>
+<p class="text-base sm:text-xl font-bold leading-snug" x-text="currentLesson.video"></p>
+</div>
+<button @click="toggleVideo()" :aria-label="video.playing ? 'Pause video' : 'Play video'" class="absolute bottom-14 right-4 w-12 h-12 rounded-full bg-white text-orange-600 shadow-lg flex items-center justify-center hover:scale-105 transition">
+<i :class="video.playing ? 'fa-pause' : 'fa-play ml-0.5'" class="fa-solid"></i>
+</button>
+<div class="absolute bottom-0 inset-x-0 bg-black/40 backdrop-blur-sm px-4 py-2.5 flex items-center space-x-3 text-[11px] font-medium">
+<span x-text="formatTime(video.sec)"></span>
+<div class="flex-1 h-1.5 bg-white/30 rounded-full overflow-hidden"><div class="h-full bg-white rounded-full" :style="'width:' + (video.sec / video.total * 100) + '%'"></div></div>
+<span x-text="formatTime(video.total)"></span>
+</div>
+</div>
+</div>
+
+<div class="mb-8">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center space-x-2"><i class="fa-solid fa-lightbulb text-orange-500"></i><span>Check Your Understanding</span></h3>
+<p class="text-sm font-semibold text-slate-800 dark:text-slate-100 mb-3" x-text="currentLesson.quiz.q"></p>
+<div class="space-y-2">
+<template x-for="(o, i) in currentLesson.quiz.options" :key="i">
+<button @click="selectOption(i)" :class="optClass(i)" class="w-full text-left flex items-center space-x-3 p-3 rounded-xl border-2 text-sm font-medium text-slate-700 dark:text-slate-200 transition">
+<span class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold flex items-center justify-center flex-shrink-0" x-text="'ABC'[i]"></span>
+<span x-text="o"></span>
+</button>
+</template>
+</div>
+<button @click="checkAnswer()" :disabled="quiz.sel === null || quiz.correct" class="mt-4 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold transition shadow-md shadow-orange-600/20 disabled:opacity-40 disabled:cursor-not-allowed">Check Answer</button>
+<div x-show="quiz.checked" x-cloak x-transition.opacity :class="quiz.correct ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900/50 text-emerald-800 dark:text-emerald-200' : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-200'" class="mt-4 p-4 rounded-2xl border text-xs leading-relaxed">
+<p class="font-bold text-sm mb-1" x-text="quiz.correct ? 'Correct! Great thinking.' : 'Not quite. That is okay, try again.'"></p>
+<p x-text="quiz.correct ? currentLesson.quiz.explain : currentLesson.quiz.hint"></p>
+</div>
+</div>
+
+<div class="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-slate-800">
+<button @click="lessonModalOpen = false" class="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition">Close</button>
+<button @click="completeCurrentLesson()" :disabled="!canComplete()" class="px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold transition shadow-md shadow-orange-600/20 flex items-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed">
+<i class="fa-solid fa-circle-check"></i><span x-text="done[currentLesson.id] ? 'Lesson Completed' : 'Mark Lesson Complete'"></span>
+</button>
+</div>
+</div>
+</div>
+
+<!-- ================= BOOKING MODAL VIEW ================= -->
+<div x-show="bookingModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+<div @click.away="bookingModalOpen = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative">
+<button @click="bookingModalOpen = false" class="absolute top-6 right-6 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+<div class="text-center mb-6">
+<div class="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400 flex items-center justify-center text-xl mx-auto mb-3 shadow"><i class="fa-solid fa-calendar-check"></i></div>
+<h3 class="text-xl font-bold text-slate-900 dark:text-white">Book Mentorship Session</h3>
+<p class="text-xs text-slate-500 mt-1">Schedule 1-on-1 time with <span class="font-semibold text-orange-600 dark:text-orange-400" x-text="selectedMentorName"></span></p>
+</div>
+<div class="space-y-4 mb-6">
+<div><label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Select Date</label><input type="date" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500"></div>
+<div><label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Select Time Slot (IST)</label>
+<select class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500"><option>4:00 PM - 5:00 PM IST</option><option>5:30 PM - 6:30 PM IST</option><option>7:00 PM - 8:00 PM IST</option></select></div>
+<div><label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Preferred Language for Session</label>
+<select class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500"><option>Hindi</option><option>Dari / Persian</option><option>English</option></select></div>
+</div>
+<div class="flex space-x-3">
+<button @click="bookingModalOpen = false" class="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition">Cancel</button>
+<button @click="confirmBooking()" class="flex-1 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-sm font-semibold transition shadow-md shadow-orange-600/20">Confirm Booking</button>
+</div>
+</div>
+</div>
+
+<div x-show="toastOpen" x-transition:enter="transition ease-out duration-300" x-transition:leave="transition ease-in duration-200" x-cloak class="fixed bottom-6 right-6 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 text-sm font-semibold">
+<i class="fa-solid fa-circle-check text-emerald-400 text-base"></i><span x-text="toastMessage"></span>
+</div>
+</div>
+
+<script>
+// Paste your Google OAuth Web Client ID here to turn on real "Continue with Google".
+const GOOGLE_CLIENT_ID = '';
+function dhruvApp() {
+return {
+darkMode: false, currentTab: 'dashboard', selectedLanguage: 'all',
+user: null, authMode: 'login', authForm: { name: '', email: '', password: '' }, authError: '', showPw: false,
+googleDemo: false, googleReal: false, gDemo: { name: '', email: '' },
+lessonModalOpen: false, bookingModalOpen: false, selectedMentorName: '',
+toastOpen: false, toastMessage: '',
+done: { 'digital-1': true, 'digital-2': true, 'ai-0': true },
+started: { 'ai-1': true },
+quiz: { sel: null, checked: false, correct: false },
+video: { playing: false, sec: 0, total: 180 },
+timer: null,
+lessons: {
+'digital-1': { module: 1, short: '1.1 Desktop & Files', mins: 12, title: 'Module 1.1: Desktop & File Management',
+steps: [
+{ t: 'Your computer workspace', d: 'Welcome to your computer workspace! Organizing files properly helps you keep your study materials neat and accessible. Think of folders like physical filing cabinets in a study room.' },
+{ t: 'Create a folder', d: 'Right-click on an empty space on your desktop, choose New, then Folder. Type a name and press Enter.' },
+{ t: 'Practice', d: 'Take a moment to practice creating a new folder on your computer desktop named "Dhruv_Studies" and place your downloaded worksheet inside it.' }],
+codeSnippet: '# Example Folder Path Structure:\n/Project_Dhruv/Digital_Literacy/Module_1_Notes.pdf',
+video: 'Organizing Your Desktop in 3 Minutes',
+quiz: { q: 'Where is the best place to keep your downloaded worksheet so you can find it later?', options: ['Loose on the desktop with many other files', 'In a folder named Dhruv_Studies', 'In the Recycle Bin'], answer: 1, explain: 'Folders work like filing cabinets. A clear folder name makes your files easy to find.', hint: 'Think about which choice keeps your files organized.' } },
+'digital-2': { module: 1, short: '1.2 Web Research', mins: 14, title: 'Module 1.2: Web Research',
+steps: [
+{ t: 'Use clear keywords', d: 'Type a few specific words into the search bar instead of a long sentence. "photosynthesis for kids" works better than "tell me everything about plants".' },
+{ t: 'Check the source', d: 'Look at who wrote the page and when. Websites ending in .edu, .gov or .org are often more reliable.' },
+{ t: 'Compare two sources', d: 'If something sounds surprising, check whether a second trusted website says the same thing before you believe it.' }],
+codeSnippet: '# Good search keywords:\nphotosynthesis for kids',
+video: 'Search Smarter: Finding Reliable Answers',
+quiz: { q: 'You find a surprising claim on one website. What should you do first?', options: ['Share it with all your friends', 'Check whether a second trusted source says the same', 'Turn off your computer'], answer: 1, explain: 'Comparing sources is the most important habit in web research.', hint: 'How could you confirm the claim is true?' } },
+'ai-0': { module: 2, short: '2.1 What is Machine Learning?', mins: 14, title: 'Module 2.1: What is Machine Learning?',
+steps: [
+{ t: 'Rules versus learning', d: 'Regular programs follow rules a person wrote. Machine learning finds patterns in many examples and uses them to make a guess.' },
+{ t: 'Examples teach the model', d: 'To recognize cats, a model studies thousands of labeled cat photos until it spots what they have in common.' },
+{ t: 'Guesses, not facts', d: 'AI predicts what is likely. It can sound confident and still be wrong, so always think critically.' }],
+codeSnippet: '# How a model learns:\nExamples (photos + labels)  ->  Training  ->  Predictions',
+video: 'Machine Learning Explained with Everyday Examples',
+quiz: { q: 'How does a machine learning model learn to recognize a cat?', options: ['Someone types every rule about cats', 'From many labeled example photos', 'It is born knowing'], answer: 1, explain: 'Models learn patterns from large sets of labeled examples.', hint: 'Think about what training data means.' } },
+'ai-1': { module: 2, short: '2.2 Prompt Engineering', mins: 15, title: 'Module 2.2: Prompt Engineering Basics',
+steps: [
+{ t: 'Clear instructions', d: 'Artificial Intelligence models learn from patterns in data. When you talk to an AI assistant, giving clear, polite, and detailed instructions (called prompts) helps the AI give you the best possible answers for your homework.' },
+{ t: 'Be specific', d: 'Say who the answer is for, how long it should be, and which language you want. Specific prompts get better answers.' },
+{ t: 'Stay curious and careful', d: 'AI is a tool to empower your curiosity. Always double-check facts and use your own brilliant critical thinking!' }],
+codeSnippet: '// Example Prompt Structure:\n"Act as a friendly tutor. Explain what machine learning is in 3 simple sentences in Hindi."',
+video: 'Asking Good Questions: Prompts That Work',
+quiz: { q: 'Which prompt will probably give the best answer?', options: ['Tell me stuff', 'Explain photosynthesis in 3 short sentences for a 12-year-old, in Hindi', 'Photosynthesis'], answer: 1, explain: 'It names the topic, the length, the audience and the language.', hint: 'Pick the prompt with the most helpful details.' } },
+'safety-1': { module: 3, short: '3.1 Strong Passwords', mins: 12, title: 'Module 3.1: Strong Passwords & Online Safety',
+steps: [
+{ t: 'Your online identity is precious', d: 'A strong password uses a mix of uppercase letters, lowercase letters, numbers, and symbols without using easily guessable personal info like birthdays.' },
+{ t: 'Use one password per account', d: 'If one website is hacked, a reused password opens your other accounts too.' },
+{ t: 'Keep it secret', d: 'Never share your password with anyone, even if they claim to be a website administrator.' }],
+codeSnippet: '# Secure Password Formula:\n[Word] + [Special Character] + [Number]  ->  e.g., Dhruv!2026Secure',
+video: 'Password Power: Building Strong Passwords',
+quiz: { q: 'Which password is the strongest?', options: ['password123', 'Arjun2010', 'Mango!Lantern-River42'], answer: 2, explain: 'It is long, mixes symbols and numbers, and has no personal information.', hint: 'Avoid names, birth years and common words.' } },
+'safety-2': { module: 3, short: '3.2 Spotting Scams', mins: 12, title: 'Module 3.2: Spotting Scams',
+steps: [
+{ t: 'Scams create panic', d: 'Scam messages often say things like "Act now or your account will close!" to make you rush.' },
+{ t: 'Look for warning signs', d: 'Check for strange sender addresses, spelling mistakes, and links that ask for passwords or money.' },
+{ t: 'Pause and ask', d: 'Do not click. Tell a mentor or trusted adult, then delete or report the message.' }],
+codeSnippet: '# Scam checklist:\nUrgent? Strange sender? Asks for a password?  ->  Stop and ask.',
+video: 'Spot the Scam: 3 Quick Checks',
+quiz: { q: 'An email says "Your account closes in 1 hour! Click here and enter your password." What do you do?', options: ['Click quickly and log in', 'Do not click; report it and tell a trusted adult', 'Reply with your password'], answer: 1, explain: 'Urgent messages asking for passwords are a classic scam. Pausing keeps you safe.', hint: 'Real companies never ask for your password by email.' } }
+},
+currentLesson: { id: '', module: 0, short: '', mins: 0, title: '', steps: [], codeSnippet: '', video: '', quiz: { q: '', options: [], answer: 0, explain: '', hint: '' } },
+
+init() {
+this.darkMode = document.documentElement.classList.contains('dark');
+this.$watch('darkMode', (v) => { document.documentElement.classList.toggle('dark', v); try { localStorage.setItem('dhruv-theme', v ? 'dark' : 'light'); } catch (e) {} });
+this.$watch('done', () => this.save());
+this.$watch('started', () => this.save());
+this.$watch('lessonModalOpen', (v) => { if (!v) this.stopVideo(); });
+const sess = this.ls('dhruv-session');
+if (sess && sess.email) this.enter(sess);
+this.initGoogle();
+},
+save() { if (!this.user) return; this.lsSet('dhruv-progress-' + this.user.email, { done: this.done, started: this.started }); },
+ls(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } },
+lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+startProgress() { return { done: { 'digital-1': true, 'digital-2': true, 'ai-0': true }, started: { 'ai-1': true } }; },
+get firstName() { return this.user ? (this.user.name || 'there').trim().split(/\s+/)[0] : ''; },
+get initials() { return this.user ? (this.user.name || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() : ''; },
+async hashPw(s) { try { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('dhruv:' + s)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); } catch (e) { return btoa(unescape(encodeURIComponent('dhruv:' + s))); } },
+enter(u) {
+this.user = u; this.lsSet('dhruv-session', u);
+const p = this.ls('dhruv-progress-' + u.email) || this.startProgress();
+this.done = p.done || {}; this.started = p.started || {};
+this.currentTab = 'dashboard'; this.lessonModalOpen = false; this.bookingModalOpen = false;
+this.authForm = { name: '', email: '', password: '' }; this.gDemo = { name: '', email: '' }; this.authError = ''; this.googleDemo = false;
+window.scrollTo(0, 0);
+},
+logout() {
+this.stopVideo(); this.lessonModalOpen = false; this.bookingModalOpen = false;
+this.user = null; this.authMode = 'login';
+try { localStorage.removeItem('dhruv-session'); } catch (e) {}
+try { google.accounts.id.disableAutoSelect(); } catch (e) {}
+},
+async submitAuth() {
+const f = this.authForm, email = f.email.trim().toLowerCase();
+this.authError = '';
+if (!/^\S+@\S+\.\S+$/.test(email)) { this.authError = 'Enter a valid email address.'; return; }
+const users = this.ls('dhruv-users') || {};
+if (this.authMode === 'signup') {
+if (!f.name.trim()) { this.authError = 'Please enter your name.'; return; }
+if (f.password.length < 6) { this.authError = 'Password must be at least 6 characters.'; return; }
+if (users[email]) { this.authError = 'An account with this email already exists. Try logging in.'; return; }
+users[email] = { name: f.name.trim(), hash: await this.hashPw(f.password) };
+this.lsSet('dhruv-users', users);
+this.enter({ name: f.name.trim(), email, picture: '', provider: 'email' });
+} else {
+const u = users[email];
+if (!u) { this.authError = 'No account found with that email. Create one first.'; return; }
+if (u.hash !== await this.hashPw(f.password)) { this.authError = 'Incorrect password. Please try again.'; return; }
+this.enter({ name: u.name, email, picture: '', provider: 'email' });
+}
+},
+googleDemoSignIn() {
+const n = this.gDemo.name.trim(), e = this.gDemo.email.trim().toLowerCase();
+if (!n || !/^\S+@\S+\.\S+$/.test(e)) { this.authError = 'Enter your Google name and email.'; return; }
+this.enter({ name: n, email: e, picture: '', provider: 'google' });
+},
+initGoogle() {
+if (!GOOGLE_CLIENT_ID) return;
+const s = document.createElement('script');
+s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
+s.onload = () => { try {
+google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: (r) => this.googleCredential(r.credential) });
+google.accounts.id.renderButton(document.getElementById('gbtn'), { theme: 'outline', size: 'large', width: 320, text: 'continue_with', shape: 'pill' });
+this.googleReal = true;
+} catch (e) {} };
+document.head.appendChild(s);
+},
+googleCredential(jwt) {
+try {
+const p = jwt.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+const o = JSON.parse(decodeURIComponent(atob(p).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+this.enter({ name: o.name || o.given_name || 'Student', email: (o.email || '').toLowerCase(), picture: o.picture || '', provider: 'google' });
+} catch (e) { this.authError = 'Google sign-in failed. Please try again.'; }
+},
+
+moduleLessons(m) { return Object.keys(this.lessons).filter(id => this.lessons[id].module === m).map(id => ({ id, ...this.lessons[id] })); },
+modulePct(m) { const ls = this.moduleLessons(m); return Math.round(ls.filter(l => this.done[l.id]).length / ls.length * 100); },
+moduleStatus(m) {
+const ls = this.moduleLessons(m);
+if (this.modulePct(m) === 100) return 'Completed';
+if (ls.some(l => this.done[l.id] || this.started[l.id])) return 'In Progress';
+return 'Not Started';
+},
+badgeClass(m) {
+const s = this.moduleStatus(m);
+if (s === 'Completed') return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300';
+if (s === 'In Progress') return 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300';
+return 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+},
+nextLabel(m) { const n = this.moduleLessons(m).find(l => !this.done[l.id]); return n ? 'Next: ' + n.short.replace(/^[0-9.]+\s/, '') : 'All lessons complete!'; },
+moduleBtn(m) {
+if (this.modulePct(m) === 100) return 'Review Lesson';
+if (this.moduleStatus(m) === 'Not Started') return m === 3 ? 'Unlock Lesson' : 'Start Module';
+return 'Continue Learning';
+},
+openModule(m) { const ls = this.moduleLessons(m); const target = ls.find(l => !this.done[l.id]) || ls[0]; this.openLesson(target.id); },
+
+rowStatus(id) { return this.done[id] ? 'Done' : (this.started[id] ? 'In Progress' : 'Locked'); },
+rowClass(id) { return this.rowStatus(id) === 'In Progress' ? 'bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900' : 'bg-slate-50 dark:bg-slate-800/50'; },
+rowIcon(id) {
+const s = this.rowStatus(id);
+if (s === 'Done') return 'fa-circle-check text-emerald-500';
+if (s === 'In Progress') return 'fa-spinner fa-spin text-orange-500';
+return 'fa-lock text-slate-400';
+},
+rowTextClass(id) {
+const s = this.rowStatus(id);
+if (s === 'Done') return 'text-emerald-600 font-medium';
+if (s === 'In Progress') return 'text-orange-600 font-medium';
+return 'text-slate-400';
+},
+
+openLesson(lessonId) {
+if (!this.lessons[lessonId]) return;
+this.stopVideo(); this.video.sec = 0;
+this.quiz = { sel: null, checked: false, correct: false };
+this.currentLesson = { id: lessonId, ...this.lessons[lessonId] };
+if (!this.done[lessonId]) this.started[lessonId] = true;
+this.lessonModalOpen = true;
+},
+selectOption(i) { if (this.quiz.correct) return; this.quiz.sel = i; this.quiz.checked = false; },
+checkAnswer() { this.quiz.checked = true; this.quiz.correct = this.quiz.sel === this.currentLesson.quiz.answer; },
+optClass(i) {
+if (this.quiz.checked && this.quiz.sel === i) return this.quiz.correct ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : 'border-rose-400 bg-rose-50 dark:bg-rose-950/40';
+if (this.quiz.sel === i) return 'border-orange-500 bg-orange-50 dark:bg-orange-950/40';
+return 'border-slate-200 dark:border-slate-700 hover:border-orange-300';
+},
+canComplete() { return !this.done[this.currentLesson.id] && this.quiz.correct; },
+completeCurrentLesson() {
+if (!this.canComplete()) return;
+this.done[this.currentLesson.id] = true;
+this.lessonModalOpen = false;
+this.showToast('Lesson complete! XP points added to your profile.');
+},
+toggleVideo() {
+if (this.video.playing) { this.stopVideo(); return; }
+this.video.playing = true;
+this.timer = setInterval(() => { this.video.sec++; if (this.video.sec >= this.video.total) this.stopVideo(); }, 1000);
+},
+stopVideo() { this.video.playing = false; clearInterval(this.timer); },
+formatTime(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); },
+openBookingModal(mentorName) { this.selectedMentorName = mentorName; this.bookingModalOpen = true; },
+confirmBooking() { this.bookingModalOpen = false; this.showToast('Mentorship session booked successfully! Calendar invite sent.'); },
+showToast(msg) { this.toastMessage = msg; this.toastOpen = true; setTimeout(() => { this.toastOpen = false; }, 3500); }
+}
+}
+</script>
+</body>
+</html>
